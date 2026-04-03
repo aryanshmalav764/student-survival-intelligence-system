@@ -1,0 +1,27 @@
+University,City,State,Field,Level,Avg_Tuition_AUD,Ranking,Living_Cost
+University of Melbourne,Melbourne,Victoria,Data Science,Postgraduate,45000,33,2000
+Monash University,Melbourne,Victoria,Engineering,Undergraduate,42000,57,2000
+RMIT University,Melbourne,Victoria,IT,Undergraduate,38000,190,2000
+Deakin University,Geelong,Victoria,Data Science,Postgraduate,35000,250,1900
+La Trobe University,Bendigo,Victoria,Business,Undergraduate,33000,300,1800
+
+University of Sydney,Sydney,New South Wales,Data Science,Postgraduate,48000,19,2300
+UNSW Sydney,Sydney,New South Wales,Engineering,Undergraduate,47000,45,2300
+UTS,Sydney,New South Wales,IT,Undergraduate,40000,90,2200
+Macquarie University,Sydney,New South Wales,Business,Postgraduate,35000,200,2100
+University of Newcastle,Newcastle,New South Wales,Engineering,Undergraduate,33000,250,1900
+
+University of Queensland,Brisbane,Queensland,Data Science,Postgraduate,44000,50,1800
+QUT,Brisbane,Queensland,IT,Undergraduate,36000,180,1800
+Griffith University,Gold Coast,Queensland,Business,Undergraduate,34000,220,1700
+James Cook University,Townsville,Queensland,Health,Postgraduate,32000,300,1600
+
+University of Adelaide,Adelaide,South Australia,Engineering,Undergraduate,39000,100,1700
+Flinders University,Adelaide,South Australia,Health,Postgraduate,33000,250,1700
+
+University of Western Australia,Perth,Western Australia,Data Science,Postgraduate,42000,90,1800
+Curtin University,Perth,Western Australia,Engineering,Undergraduate,35000,200,1800
+Edith Cowan University,Perth,Western Australia,IT,Undergraduate,32000,300,1700
+
+University of Tasmania,Hobart,Tasmania,Data Science,Postgraduate,32000,300,1500
+UTAS,Launceston,Tasmania,IT,Undergraduate,30000,350,1500

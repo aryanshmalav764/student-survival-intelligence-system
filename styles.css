@@ -1,28 +1,45 @@
-/* styles.css - Modern, clean, premium look */
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f4f7fa;
-    color: #222;
+    font-family: 'Segoe UI';
+    background: white;
 }
 
-.bg-container {
+.bg-image {
+    position: fixed;
+    top: 0;
     width: 100%;
-    height: 70vh;
+    height: 400px;
+    opacity: 0.25;
+    z-index: -1;
     background-size: cover;
-    background-position: center;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    filter: blur(3px);
 }
 
-.metric-card {
-    background-color: rgba(255,255,255,0.85);
+.title {
+    font-size: 38px;
+    text-align: center;
+    color: #1a73e8;
+    font-weight: bold;
+}
+
+.subtitle {
+    text-align: center;
+    color: gray;
+}
+
+.section {
+    font-size: 26px;
+    margin-top: 25px;
+}
+
+.card {
+    background: white;
     padding: 20px;
     border-radius: 12px;
-    margin-bottom: 15px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin: 20px 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-h1, h2, h3 {
-    color: #1a73e8;
+.footer {
+    text-align: center;
+    color: gray;
 }

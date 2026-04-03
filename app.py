@@ -1,144 +1,169 @@
-# app.py
 import streamlit as st
 import pandas as pd
 import requests
 import folium
 from streamlit_folium import st_folium
 
-# -----------------------------
-# PAGE CONFIG + STYLING
-# -----------------------------
-st.set_page_config(page_title="Australia Student Dashboard", layout="wide")
+st.set_page_config(page_title="SSIS", layout="wide")
+
+# ---------------- CSS ----------------
 with open("styles.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.markdown('<h1 style="text-align:center; color:#1a73e8;">Australia Student Dashboard</h1>', unsafe_allow_html=True)
-st.markdown('<h3 style="text-align:center; color:#555;">Explore cities, universities, budgets, and maps interactively</h3>', unsafe_allow_html=True)
-st.markdown("---")
+# ---------------- IMAGE ----------------
+def get_image(query):
+    try:
+        return f"https://source.unsplash.com/1600x900/?{query}"
+    except:
+        return "https://via.placeholder.com/800x500"
 
-# -----------------------------
-# CITIES & ENVIRONMENT SELECTOR
-# -----------------------------
-cities = [
-    "Melbourne","Sydney","Adelaide","Hobart","Perth",
-    "Canberra","Brisbane","Gold Coast","Darwin","Launceston",
-    "Newcastle","Wollongong","Geelong","Cairns","Townsville",
-    "Sunshine Coast","Toowoomba","Ballarat","Bendigo","Launceston"
-]
+# ---------------- WIKI ----------------
+def wiki(topic):
+    try:
+        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{topic}"
+        return requests.get(url).json().get("extract", "No info available.")
+    except:
+        return "No info available."
 
-city = st.selectbox("Select a City", cities)
-env_type = st.radio("Environment Preference", ["Urban","Nature"])
+# ---------------- DATA ----------------
+df = pd.read_csv("data.csv")
 
-# -----------------------------
-# UNSPLASH DYNAMIC BACKGROUND IMAGE
-# -----------------------------
-def fetch_unsplash_image(city, env_type):
-    access_key = "YOUR_UNSPLASH_API_KEY"  # Replace with your Unsplash API key
-    query = f"{city} {env_type} skyline"
-    url = f"https://api.unsplash.com/photos/random?query={query}&client_id={access_key}"
-    res = requests.get(url).json()
-    return res['urls']['regular']
+# ---------------- HEADER ----------------
+st.title("Student Survival Intelligence System")
+st.write("Choose the best university, city and lifestyle in Australia")
 
-try:
-    img_url = fetch_unsplash_image(city, env_type)
-    st.markdown(f"<div class='bg-container' style='background-image: url({img_url});'></div>", unsafe_allow_html=True)
-except:
-    st.warning("Could not fetch image. Using fallback if available.")
+# ---------------- FILTER LOGIC ----------------
+state = st.selectbox("Select State", ["All"] + sorted(df["State"].unique()))
 
-# -----------------------------
-# UNIVERSITIES DATA (TOP 100)
-# -----------------------------
-uni_url = "https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json"
-data = requests.get(uni_url).json()
-aus_unis = [uni for uni in data if uni["country"] == "Australia"]
-df_unis = pd.DataFrame(aus_unis).head(100)
-selected_uni = st.selectbox("Select University", df_unis["name"])
-uni_city = df_unis[df_unis["name"] == selected_uni]["state-province"].values[0]
-st.markdown(f"**{selected_uni}** is located in **{uni_city or 'Unknown'}**")
-
-# -----------------------------
-# WIKIPEDIA INFO
-# -----------------------------
-def wiki_summary(query):
-    url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{query.replace(' ','_')}"
-    res = requests.get(url).json()
-    return res.get("extract","Info not available")
-
-st.subheader(f"About {city}")
-st.write(wiki_summary(city))
-
-st.subheader(f"About {selected_uni}")
-st.write(wiki_summary(selected_uni))
-
-# -----------------------------
-# BUDGET / EXPENSE SIMULATOR
-# -----------------------------
-st.subheader("Budget Simulator")
-city_data = {
-    "Melbourne":{"rent":1200,"cost":2000},
-    "Sydney":{"rent":1500,"cost":2300},
-    "Adelaide":{"rent":900,"cost":1700},
-    "Hobart":{"rent":950,"cost":1600},
-    "Perth":{"rent":1000,"cost":1800},
-    "Canberra":{"rent":1400,"cost":2100},
-    "Brisbane":{"rent":1100,"cost":1800},
-    "Gold Coast":{"rent":1000,"cost":1750},
-    "Darwin":{"rent":1200,"cost":1900},
-    "Launceston":{"rent":850,"cost":1500},
-    "Newcastle":{"rent":950,"cost":1650},
-    "Wollongong":{"rent":900,"cost":1600},
-    "Geelong":{"rent":880,"cost":1550},
-    "Cairns":{"rent":850,"cost":1500},
-    "Townsville":{"rent":870,"cost":1520},
-    "Sunshine Coast":{"rent":890,"cost":1550},
-    "Toowoomba":{"rent":800,"cost":1450},
-    "Ballarat":{"rent":780,"cost":1400},
-    "Bendigo":{"rent":760,"cost":1380}
-}
-
-new_rent = st.number_input(f"Update Rent for {city}", value=city_data[city]["rent"])
-new_cost = st.number_input(f"Update Cost of Living for {city}", value=city_data[city]["cost"])
-budget = st.number_input("Enter your monthly budget ($)", min_value=500, max_value=10000, step=50)
-total_expense = new_rent + new_cost
-if budget >= total_expense:
-    st.success(f"You can live comfortably in {city} with your budget of ${budget}")
+if state != "All":
+    city_options = sorted(df[df["State"] == state]["City"].unique())
 else:
-    st.warning(f"Your budget of ${budget} is not enough for {city} (Expenses: ${total_expense})")
+    city_options = sorted(df["City"].unique())
 
-# -----------------------------
-# INTERACTIVE MAP
-# -----------------------------
-st.subheader("Map of City / University")
+city = st.selectbox("Select City", ["All"] + city_options)
+
+field = st.selectbox("Field", ["All"] + sorted(df["Field"].unique()))
+level = st.selectbox("Study Level", ["All"] + sorted(df["Level"].unique()))
+
+budget = st.slider("Monthly Budget", 800, 5000, 2000)
+tuition = st.slider("Max Tuition", 20000, 60000, 40000)
+
+# ---------------- BACKGROUND ----------------
+bg = city if city != "All" else state if state != "All" else "Australia skyline"
+
+st.markdown(
+    f"<div class='bg-image' style='background-image:url({get_image(bg)})'></div>",
+    unsafe_allow_html=True
+)
+
+# ---------------- FILTER ----------------
+filtered = df.copy()
+
+if state != "All":
+    filtered = filtered[filtered["State"] == state]
+
+if city != "All":
+    filtered = filtered[filtered["City"] == city]
+
+if field != "All":
+    filtered = filtered[filtered["Field"] == field]
+
+if level != "All":
+    filtered = filtered[filtered["Level"] == level]
+
+filtered = filtered[filtered["Avg_Tuition_AUD"] <= tuition]
+
+# ---------------- SCORE ----------------
+def score(r):
+    s = 0
+    if r["Avg_Tuition_AUD"] <= tuition: s += 2
+    if budget >= r["Living_Cost"]: s += 2
+    if r["Ranking"] < 100: s += 2
+    elif r["Ranking"] < 200: s += 1
+    return s
+
+filtered["Score"] = filtered.apply(score, axis=1)
+filtered = filtered.sort_values(by="Score", ascending=False)
+
+# ---------------- RESULTS ----------------
+st.header("Top Recommendations")
+
+if filtered.empty:
+    st.warning("No results found. Try adjusting filters.")
+else:
+    for _, r in filtered.head(6).iterrows():
+        st.subheader(r["University"])
+        st.image(get_image(r["University"]))
+
+        st.write(f"{r['City']}, {r['State']}")
+        st.write(f"{r['Field']} | {r['Level']}")
+        st.write(f"Tuition: {r['Avg_Tuition_AUD']}")
+        st.write(f"Living Cost: {r['Living_Cost']}")
+
+        st.write("Why this?")
+        if r["Avg_Tuition_AUD"] <= tuition:
+            st.write("- Fits your budget")
+        if budget >= r["Living_Cost"]:
+            st.write("- Affordable living")
+        if r["Ranking"] < 100:
+            st.write("- Strong ranking")
+
+        st.write("About City:")
+        st.write(wiki(r["City"]))
+
+        st.markdown("---")
+
+# ---------------- MAP ----------------
+st.header("Map")
+
 coords = {
-    "Melbourne":[-37.8136, 144.9631],
-    "Sydney":[-33.8688, 151.2093],
-    "Adelaide":[-34.9285,138.6007],
-    "Hobart":[-42.8821,147.3272],
-    "Perth":[-31.9505,115.8605],
-    "Canberra":[-35.2809,149.1300],
-    "Brisbane":[-27.4698,153.0251],
-    "Gold Coast":[-28.0167,153.4000],
-    "Darwin":[-12.4634,130.8456],
-    "Launceston":[-41.4332,147.1441],
-    "Newcastle":[-32.9283,151.7817],
-    "Wollongong":[-34.4278,150.8931],
-    "Geelong":[-38.1499,144.3617],
-    "Cairns":[-16.9186,145.7781],
-    "Townsville":[-19.2589,146.8169],
-    "Sunshine Coast":[-26.6500,153.0667],
-    "Toowoomba":[-27.5606,151.9539],
-    "Ballarat":[-37.5622,143.8503],
-    "Bendigo":[-36.7570,144.2794]
+    "Melbourne":[-37.81,144.96],
+    "Sydney":[-33.86,151.20],
+    "Brisbane":[-27.46,153.02],
+    "Perth":[-31.95,115.86],
+    "Adelaide":[-34.92,138.60],
+    "Hobart":[-42.88,147.32],
+    "Geelong":[-38.15,144.36],
+    "Newcastle":[-32.93,151.78]
 }
 
-m = folium.Map(location=coords[city], zoom_start=12)
-folium.Marker(location=coords[city], popup=f"{city}").add_to(m)
-st_folium(m, width=700, height=500)
+m = folium.Map(location=[-25,135], zoom_start=4)
 
-# -----------------------------
-# SUGGESTIONS / FEEDBACK BOX
-# -----------------------------
-st.subheader("Suggestions / Feedback")
-feedback = st.text_area("Enter your suggestion or idea")
-if st.button("Submit"):
-    st.success("Thanks! Your suggestion has been recorded (demo).")
+for _, r in filtered.head(5).iterrows():
+    if r["City"] in coords:
+        folium.Marker(location=coords[r["City"]], popup=r["City"]).add_to(m)
+
+st_folium(m)
+
+# ---------------- COMPARE ----------------
+st.header("Compare Universities")
+
+u_list = sorted(df["University"].unique())
+
+u1 = st.selectbox("First University", ["Select"] + u_list)
+u2 = st.selectbox("Second University", ["Select"] + u_list)
+
+if u1 != "Select" and u2 != "Select" and u1 != u2:
+    d1 = df[df["University"] == u1].iloc[0]
+    d2 = df[df["University"] == u2].iloc[0]
+
+    score1 = 0
+    score2 = 0
+
+    if d1["Ranking"] < d2["Ranking"]: score1 += 2
+    else: score2 += 2
+
+    if d1["Avg_Tuition_AUD"] < d2["Avg_Tuition_AUD"]: score1 += 1
+    else: score2 += 1
+
+    if d1["Living_Cost"] < d2["Living_Cost"]: score1 += 1
+    else: score2 += 1
+
+    if score1 > score2:
+        st.success(f"{u1} is better")
+    else:
+        st.success(f"{u2} is better")
+
+# ---------------- FOOTER ----------------
+st.markdown("---")
+st.write("Built by Aryansh Malav")
